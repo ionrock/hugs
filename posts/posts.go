@@ -10,17 +10,18 @@ import (
 )
 
 type Post struct {
-	Title     string
-	Date      time.Time
-	Content   string
-	IsDraft   bool
-	Filename  string
+	Title    string
+	Date     time.Time
+	Content  string
+	IsDraft  bool
+	Tags     []string
+	Filename string
 }
 
 // ListPosts returns all posts in the content/post directory
 func ListPosts(contentDir string) ([]Post, error) {
 	var posts []Post
-	
+
 	files, err := os.ReadDir(contentDir)
 	if err != nil {
 		return nil, fmt.Errorf("reading posts directory: %w", err)
@@ -41,50 +42,91 @@ func ListPosts(contentDir string) ([]Post, error) {
 
 // ReadPost reads a post file and parses its front matter
 func ReadPost(path string) (Post, error) {
-	file, err := os.Open(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
-		return Post{}, err
+		return Post{}, fmt.Errorf("reading post: %w", err)
 	}
-	defer file.Close()
 
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+	inFrontMatter := false
 	post := Post{
 		Filename: filepath.Base(path),
+		Content:  string(content),
 	}
-
-	scanner := bufio.NewScanner(file)
-	inFrontMatter := false
-	var content strings.Builder
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		
 		if line == "---" {
 			if !inFrontMatter {
 				inFrontMatter = true
 				continue
 			} else {
-				inFrontMatter = false
-				continue
+				break
 			}
 		}
-
 		if inFrontMatter {
-			if strings.HasPrefix(line, "title:") {
-				post.Title = strings.TrimSpace(strings.TrimPrefix(line, "title:"))
-			} else if strings.HasPrefix(line, "date:") {
-				dateStr := strings.TrimSpace(strings.TrimPrefix(line, "date:"))
-				post.Date, _ = time.Parse("2006-01-02", dateStr)
-			} else if strings.HasPrefix(line, "draft:") {
-				post.IsDraft = strings.TrimSpace(strings.TrimPrefix(line, "draft:")) == "true"
+			parts := strings.SplitN(line, ":", 2)
+			if len(parts) != 2 {
+				continue
 			}
-		} else {
-			content.WriteString(line)
-			content.WriteString("\n")
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+
+			switch key {
+			case "title":
+				post.Title = value
+			case "date":
+				dateformats := []string{
+					"2006-01-02",
+					"2006-01-02 15:04:05",
+					"2006-01-02 15:04",
+					"2006-01-02T15:04:05Z",
+				}
+				for _, format := range dateformats {
+					date, err := time.Parse(format, value)
+					if err != nil {
+						continue
+					}
+					post.Date = date
+					break
+				}
+				if post.Date.IsZero() {
+					return Post{}, fmt.Errorf("invalid date format: %v", err)
+				}
+			case "draft":
+				post.IsDraft = value == "true"
+			case "tags":
+				// Remove brackets if present
+				value = strings.Trim(value, "[]")
+				if value != "" {
+					// Split on commas and trim spaces
+					tags := strings.Split(value, ",")
+					for i, tag := range tags {
+						tags[i] = strings.TrimSpace(tag)
+					}
+					post.Tags = tags
+				}
+			}
 		}
 	}
 
-	post.Content = content.String()
-	return post, scanner.Err()
+	if post.Title == "" {
+		return Post{}, fmt.Errorf("title not found in content")
+	}
+
+	// Create filename from title if not set
+	if post.Filename == "" {
+		fmt.Println("Creating filename from title")
+		slug := strings.ToLower(post.Title)
+		slug = strings.ReplaceAll(slug, " ", "-")
+		slug = strings.ReplaceAll(slug, "'", "")
+		slug = strings.ReplaceAll(slug, "\"", "")
+		post.Filename = fmt.Sprintf("%s.md", slug)
+	} else {
+		fmt.Println("Loaded", post.Filename)
+	}
+
+	return post, nil
 }
 
 // CreateNewPost creates a new post with the given title
@@ -113,7 +155,7 @@ func CreateNewPost(contentDir, title string) (Post, error) {
 
 	// Write the front matter
 	fmt.Fprintf(file, "---\ntitle: %s\ndate: %s\ndraft: true\n---\n\n", title, now.Format("2006-01-02"))
-	
+
 	return post, nil
 }
 
@@ -134,4 +176,33 @@ func SavePost(contentDir string, post Post) error {
 		post.Content)
 
 	return nil
-} 
+}
+
+// Slug returns the base filename without the .md extension
+func (p Post) Slug() string {
+	return strings.TrimSuffix(p.Filename, ".md")
+}
+
+func NewPostFromMarkdown(content string) (string, error) {
+	scanner := bufio.NewScanner(strings.NewReader(content))
+	inFrontMatter := false
+	var title string
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "---" {
+			if !inFrontMatter {
+				inFrontMatter = true
+				continue
+			} else {
+				break
+			}
+		}
+		if inFrontMatter && strings.HasPrefix(line, "title:") {
+			title = strings.TrimSpace(strings.TrimPrefix(line, "title:"))
+			return title, nil
+		}
+	}
+
+	return "", fmt.Errorf("title not found in content")
+}

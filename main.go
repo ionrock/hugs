@@ -51,19 +51,8 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert posts to template format
-	templatePosts := make([]templates.Post, len(postList))
-	for i, p := range postList {
-		templatePosts[i] = templates.Post{
-			Title:    p.Title,
-			Date:     p.Date.Format("2006-01-02"),
-			IsDraft:  p.IsDraft,
-			Filename: p.Filename,
-		}
-	}
-
 	// Render the template
-	component := templates.Index(templatePosts)
+	component := templates.Index(postList)
 	err = component.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
@@ -91,16 +80,8 @@ func handleEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert to template format
-	editPost := templates.EditPost{
-		Title:    post.Title,
-		Content:  post.Content,
-		IsDraft:  post.IsDraft,
-		Filename: post.Filename,
-	}
-
 	// Render the template
-	component := templates.Edit(editPost)
+	component := templates.Edit(post)
 	err = component.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
@@ -191,12 +172,18 @@ func handleSave(w http.ResponseWriter, r *http.Request) {
 
 	// Get form values
 	filename := r.FormValue("filename")
-	title := r.FormValue("title")
 	content := r.FormValue("content")
 	isDraft := r.FormValue("draft") == "on"
 
-	if filename == "" || title == "" {
-		http.Error(w, "Filename and title are required", http.StatusBadRequest)
+	if filename == "" {
+		http.Error(w, "Filename is required", http.StatusBadRequest)
+		return
+	}
+
+	// Extract title from the markdown content
+	title, err := posts.NewPostFromMarkdown(content)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -209,7 +196,7 @@ func handleSave(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save the post
-	err := posts.SavePost(contentDir, post)
+	err = posts.SavePost(contentDir, post)
 	if err != nil {
 		http.Error(w, "Error saving post: "+err.Error(), http.StatusInternalServerError)
 		return

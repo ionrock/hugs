@@ -1,24 +1,16 @@
 package templates
 
-import "github.com/a-h/templ"
+import "github.com/ionrock/hugs/posts"
+import "fmt"
 
-type Post struct {
-	Title     string
-	Date      string
-	IsDraft   bool
-	Filename  string
-}
-
-func Index(posts []Post) templ.Component {
-	return templ.ComponentFunc(func(ctx templ.Context, w templ.Writer) error {
-		return templ.Raw(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hugo Blog Editor</title>
-    <style>
+templ Index(posts []posts.Post) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Hugo Blog Editor</title>
+			<style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             max-width: 800px;
@@ -70,37 +62,31 @@ func Index(posts []Post) templ.Component {
             margin-left: 8px;
         }
     </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Blog Posts</h1>
-        <a href="/new" class="new-post">New Post</a>
-    </div>
-    <ul class="post-list">
-        ` + renderPosts(posts) + `
-    </ul>
-</body>
-</html>
-`).Render(ctx, w)
-	})
+		</head>
+		<body>
+			<div class="header">
+				<h1>Blog Posts</h1>
+				<a href="/new" class="new-post">New Post</a>
+			</div>
+			<ul class="post-list">
+				@renderPosts(posts)
+			</ul>
+		</body>
+	</html>
 }
 
-func renderPosts(posts []Post) string {
-	var html strings.Builder
+templ renderPosts(posts []posts.Post) {
 	for _, post := range posts {
-		html.WriteString(`
-        <li class="post-item">
-            <a href="/edit/` + post.Filename + `">
-                <h2 class="post-title">` + post.Title + `</h2>
-                <div class="post-meta">
-                    ` + post.Date)
-		if post.IsDraft {
-			html.WriteString(`<span class="draft-badge">Draft</span>`)
-		}
-		html.WriteString(`
-                </div>
-            </a>
-        </li>`)
+		<li class="post-item">
+			<a href={ templ.URL(fmt.Sprintf("/edit/%s", post.Filename)) }>
+				<h2 class="post-title">{ post.Title }</h2>
+				<div class="post-meta">
+					{ post.Date.Format("2006-01-02") }
+					if post.IsDraft {
+						<span class="draft-badge">Draft</span>
+					}
+				</div>
+			</a>
+		</li>
 	}
-	return html.String()
-} 
+}

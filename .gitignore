@@ -1,0 +1,27 @@
+# Binaries
+hugs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of the go coverage tool, build, and test tools
+*.out
+coverage/
+
+# Dependency directories (remove the comment below if you use Go modules)
+/vendor/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Go module files
+/go.sum
+
+# Templ generated files
+*.templ.go 

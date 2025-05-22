@@ -41,10 +41,15 @@ func main() {
 }
 
 func runServer(c *cli.Context) error {
+	var contentDir string
+
 	// Get the content directory
 	if c.String("content-dir") != "" {
+		// Try to find the full path of the `c.String("content-dir")` flag and set it to the `contentDir` variable. AI!
 		contentDir = c.String("content-dir")
-	} else {
+	}
+
+	if contentDir == "" {
 		// Get the current working directory
 		wd, err := os.Getwd()
 		if err != nil {
@@ -71,7 +76,7 @@ func runServer(c *cli.Context) error {
 	if !strings.HasPrefix(port, ":") {
 		port = ":" + port
 	}
-	
+
 	log.Printf("Starting server on http://localhost%s", port)
 	return http.ListenAndServe(port, nil)
 }

@@ -3,71 +3,28 @@ package templates
 import "github.com/ionrock/hugs/posts"
 
 templ Edit(post posts.Post) {
-	<html>
-		<head>
-			<title>Edit Post</title>
-			<style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            font-size: 16px;
-        }
-        textarea {
-            width: 100%;
-            height: 400px;
-            padding: 8px;
-            font-size: 16px;
-            font-family: monospace;
-        }
-        .checkbox-group {
-            margin: 20px 0;
-        }
-        button {
-            background: #0070f3;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #0070f3;
-            text-decoration: none;
-        }
-    </style>
-		</head>
-		<body>
-			<a href="/" class="back-link">← Back to posts</a>
-			<h1>Edit Post</h1>
-			<form method="POST" action="/save">
-				<input type="hidden" name="filename" value="{ post.Filename }"/>
-				<div class="form-group">
-					<label for="content">Content:</label>
+	@Base() {
+		<a href="/" class="back-link">← Back to posts</a>
+		<h1>Edit Post</h1>
+		<form method="POST" action="/save">
+			<input type="hidden" name="filename" value="{ post.Filename }"/>
+			<div class="form-group">
+				<label for="content">Content:</label>
+				<div style="height:500px; overflow-y:scroll; border:1px solid #c0c0c0">
 					<textarea id="content" name="content" required>{ post.Content }</textarea>
 				</div>
-				<div class="checkbox-group">
-					<label>
-						<input type="checkbox" name="draft" checked?={ post.IsDraft }/>
-						Draft
-					</label>
-				</div>
-				<button type="submit">Save Post</button>
-			</form>
-		</body>
-	</html>
+				<script>
+				var tinyMDE3 = new TinyMDE.Editor({textarea: 'content'});
+
+</script>
+			</div>
+			<div class="checkbox-group">
+				<label>
+					<input type="checkbox" name="draft" checked?={ post.IsDraft }/>
+					Draft
+				</label>
+			</div>
+			<button type="submit">Save Post</button>
+		</form>
+	}
 }

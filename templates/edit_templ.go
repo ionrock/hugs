@@ -31,30 +31,48 @@ func Edit(post posts.Post) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><title>Edit Post</title><style>\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n            max-width: 800px;\n            margin: 0 auto;\n            padding: 20px;\n        }\n        .form-group {\n            margin-bottom: 20px;\n        }\n        label {\n            display: block;\n            margin-bottom: 5px;\n        }\n        input[type=\"text\"] {\n            width: 100%;\n            padding: 8px;\n            font-size: 16px;\n        }\n        textarea {\n            width: 100%;\n            height: 400px;\n            padding: 8px;\n            font-size: 16px;\n            font-family: monospace;\n        }\n        .checkbox-group {\n            margin: 20px 0;\n        }\n        button {\n            background: #0070f3;\n            color: white;\n            border: none;\n            padding: 10px 20px;\n            border-radius: 4px;\n            cursor: pointer;\n        }\n        .back-link {\n            display: inline-block;\n            margin-bottom: 20px;\n            color: #0070f3;\n            text-decoration: none;\n        }\n    </style></head><body><a href=\"/\" class=\"back-link\">← Back to posts</a><h1>Edit Post</h1><form method=\"POST\" action=\"/save\"><input type=\"hidden\" name=\"filename\" value=\"{ post.Filename }\"><div class=\"form-group\"><label for=\"content\">Content:</label> <textarea id=\"content\" name=\"content\" required>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(post.Content)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/edit.templ`, Line: 61, Col: 66}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</textarea></div><div class=\"checkbox-group\"><label><input type=\"checkbox\" name=\"draft\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if post.IsDraft {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " checked")
+		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a href=\"/\" class=\"back-link\">← Back to posts</a><h1>Edit Post</h1><form method=\"POST\" action=\"/save\"><input type=\"hidden\" name=\"filename\" value=\"{ post.Filename }\"><div class=\"form-group\"><label for=\"content\">Content:</label><div style=\"height:500px; overflow-y:scroll; border:1px solid #c0c0c0\"><textarea id=\"content\" name=\"content\" required>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "> Draft</label></div><button type=\"submit\">Save Post</button></form></body></html>")
+			var templ_7745c5c3_Var3 string
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(post.Content)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/edit.templ`, Line: 14, Col: 66}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</textarea></div><script>\n\t\t\t\tvar tinyMDE3 = new TinyMDE.Editor({textarea: 'content'});\n\n</script></div><div class=\"checkbox-group\"><label><input type=\"checkbox\" name=\"draft\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if post.IsDraft {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " checked")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "> Draft</label></div><button type=\"submit\">Save Post</button></form>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = Base().Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

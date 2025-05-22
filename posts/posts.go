@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Post struct {
@@ -22,8 +24,11 @@ type Post struct {
 func ListPosts(contentDir string) ([]Post, error) {
 	var posts []Post
 
+	log.Debug().Str("dir", contentDir).Msg("Listing posts")
+	
 	files, err := os.ReadDir(contentDir)
 	if err != nil {
+		log.Error().Err(err).Str("dir", contentDir).Msg("Failed to read posts directory")
 		return nil, fmt.Errorf("reading posts directory: %w", err)
 	}
 
@@ -31,19 +36,24 @@ func ListPosts(contentDir string) ([]Post, error) {
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".md") {
 			post, err := ReadPost(filepath.Join(contentDir, file.Name()))
 			if err != nil {
+				log.Error().Err(err).Str("file", file.Name()).Msg("Failed to read post")
 				return nil, fmt.Errorf("reading post %s: %w", file.Name(), err)
 			}
 			posts = append(posts, post)
 		}
 	}
 
+	log.Debug().Int("count", len(posts)).Msg("Posts found")
 	return posts, nil
 }
 
 // ReadPost reads a post file and parses its front matter
 func ReadPost(path string) (Post, error) {
+	log.Debug().Str("path", path).Msg("Reading post")
+	
 	content, err := os.ReadFile(path)
 	if err != nil {
+		log.Error().Err(err).Str("path", path).Msg("Failed to read post file")
 		return Post{}, fmt.Errorf("reading post: %w", err)
 	}
 
@@ -91,6 +101,7 @@ func ReadPost(path string) (Post, error) {
 					break
 				}
 				if post.Date.IsZero() {
+					log.Error().Str("value", value).Msg("Invalid date format")
 					return Post{}, fmt.Errorf("invalid date format: %v", err)
 				}
 			case "draft":
@@ -111,19 +122,20 @@ func ReadPost(path string) (Post, error) {
 	}
 
 	if post.Title == "" {
+		log.Error().Str("path", path).Msg("Title not found in content")
 		return Post{}, fmt.Errorf("title not found in content")
 	}
 
 	// Create filename from title if not set
 	if post.Filename == "" {
-		fmt.Println("Creating filename from title")
+		log.Info().Str("title", post.Title).Msg("Creating filename from title")
 		slug := strings.ToLower(post.Title)
 		slug = strings.ReplaceAll(slug, " ", "-")
 		slug = strings.ReplaceAll(slug, "'", "")
 		slug = strings.ReplaceAll(slug, "\"", "")
 		post.Filename = fmt.Sprintf("%s.md", slug)
 	} else {
-		fmt.Println("Loaded", post.Filename)
+		log.Debug().Str("filename", post.Filename).Msg("Loaded post")
 	}
 
 	return post, nil
@@ -131,6 +143,8 @@ func ReadPost(path string) (Post, error) {
 
 // CreateNewPost creates a new post with the given title
 func CreateNewPost(contentDir, title string) (Post, error) {
+	log.Info().Str("title", title).Str("dir", contentDir).Msg("Creating new post")
+	
 	now := time.Now()
 	post := Post{
 		Title:   title,
@@ -149,6 +163,7 @@ func CreateNewPost(contentDir, title string) (Post, error) {
 	path := filepath.Join(contentDir, post.Filename)
 	file, err := os.Create(path)
 	if err != nil {
+		log.Error().Err(err).Str("path", path).Msg("Failed to create post file")
 		return Post{}, err
 	}
 	defer file.Close()
@@ -161,9 +176,12 @@ func CreateNewPost(contentDir, title string) (Post, error) {
 
 // SavePost saves a post to disk
 func SavePost(contentDir string, post Post) error {
+	log.Debug().Str("filename", post.Filename).Str("dir", contentDir).Bool("draft", post.IsDraft).Msg("Saving post")
+	
 	path := filepath.Join(contentDir, post.Filename)
 	file, err := os.Create(path)
 	if err != nil {
+		log.Error().Err(err).Str("path", path).Msg("Failed to create post file")
 		return err
 	}
 	defer file.Close()
@@ -184,6 +202,8 @@ func (p Post) Slug() string {
 }
 
 func NewPostFromMarkdown(content string) (string, error) {
+	log.Debug().Msg("Extracting title from markdown content")
+	
 	scanner := bufio.NewScanner(strings.NewReader(content))
 	inFrontMatter := false
 	var title string
@@ -204,5 +224,6 @@ func NewPostFromMarkdown(content string) (string, error) {
 		}
 	}
 
+	log.Error().Msg("Title not found in markdown content")
 	return "", fmt.Errorf("title not found in content")
 }

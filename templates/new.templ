@@ -1,0 +1,15 @@
+package templates
+
+templ New() {
+	@Base() {
+		<a href="/" class="back-link">← Back to posts</a>
+		<h1>New Post</h1>
+		<form method="POST">
+			<div class="form-group">
+				<label for="title">Title:</label>
+				<input type="text" id="title" name="title" required/>
+			</div>
+			<button type="submit">Create Post</button>
+		</form>
+	}
+}

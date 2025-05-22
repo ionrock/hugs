@@ -146,61 +146,14 @@ func (s *Server) handleNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Writ the following HTML as a new templ template in `templates/new.templ`. Be sure to use the `@Base()` like in `edit.templ`. AI!
-	// Show the new post form
-	w.Write([]byte(`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>New Post</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            font-size: 16px;
-        }
-        button {
-            background: #0070f3;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #0070f3;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <a href="/" class="back-link">← Back to posts</a>
-    <h1>New Post</h1>
-    <form method="POST">
-        <div class="form-group">
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title" required>
-        </div>
-        <button type="submit">Create Post</button>
-    </form>
-</body>
-</html>
-`))
+	// Render the new post form template
+	component := templates.New()
+	err := component.Render(r.Context(), w)
+	if err != nil {
+		log.Error().Err(err).Msg("Error rendering new post template")
+		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {

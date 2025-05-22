@@ -41,8 +41,6 @@ func main() {
 }
 
 func runServer(c *cli.Context) error {
-	var contentDir string
-
 	// Get the content directory
 	if c.String("content-dir") != "" {
 		// Get absolute path for the content directory
@@ -68,6 +66,8 @@ func runServer(c *cli.Context) error {
 	if _, err := os.Stat(contentDir); os.IsNotExist(err) {
 		return fmt.Errorf("content directory not found: %s", contentDir)
 	}
+
+	fmt.Println("Using content hugo dir: ", contentDir)
 
 	// Set up routes
 	http.HandleFunc("/", handleIndex)

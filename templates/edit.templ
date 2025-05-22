@@ -7,7 +7,7 @@ templ Edit(post posts.Post) {
 		<a href="/" class="back-link">← Back to posts</a>
 		<h1>Edit Post</h1>
 		<form method="POST" action="/save">
-			<input type="hidden" name="filename" value="{ post.Filename }"/>
+			<input type="hidden" name="filename" value={ post.Filename }/>
 			<div class="form-group">
 				<label for="content">Content:</label>
 				<div style="height:500px; overflow-y:scroll; border:1px solid #c0c0c0">

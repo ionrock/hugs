@@ -211,39 +211,36 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 	// Get form values
 	filename := r.FormValue("filename")
 	content := r.FormValue("content")
-	isDraft := r.FormValue("draft") == "on"
 
 	if filename == "" {
 		http.Error(w, "Filename is required", http.StatusBadRequest)
 		return
 	}
 
-	// Extract title from the markdown content
-	title, err := posts.NewPostFromMarkdown(content)
+	log.Debug().
+		Str("filename", filename).
+		Str("dir", s.ContentDir).
+		Msg("Saving post")
+
+	path := filepath.Join(s.ContentDir, filename)
+	file, err := os.Create(path)
 	if err != nil {
-		log.Error().Err(err).Str("filename", filename).Msg("Error extracting title from markdown")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Error().Err(err).Str("path", path).Msg("Failed to create post file")
+		http.Error(w, "Error saving post: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer file.Close()
 
-	// Create post object
-	post := posts.Post{
-		Title:    title,
-		Content:  content,
-		IsDraft:  isDraft,
-		Filename: filename,
-	}
+	// Write the front matter
+	_, err = fmt.Fprintf(file, content)
 
-	// Save the post
-	err = posts.SavePost(s.ContentDir, post)
 	if err != nil {
 		log.Error().Err(err).Str("filename", filename).Msg("Error saving post")
 		http.Error(w, "Error saving post: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	log.Info().Str("filename", filename).Bool("draft", isDraft).Msg("Post saved")
-
+	log.Info().Str("filename", filename).Msg("Post saved")
 	// Redirect back to the post list
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

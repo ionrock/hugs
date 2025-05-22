@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,7 +26,7 @@ func New(contentDir, port string) (*Server, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to get absolute path: %w", err)
 		}
-		contentDir = absPath
+		contentDir = filepath.Join(absPath, "content", "post")
 	} else {
 		// Get the current working directory
 		wd, err := os.Getwd()
@@ -35,6 +36,7 @@ func New(contentDir, port string) (*Server, error) {
 
 		// Use default Hugo blog directory
 		contentDir = filepath.Join(wd, "content", "post")
+
 	}
 
 	// Ensure the content directory exists
@@ -136,7 +138,7 @@ func (s *Server) handleNew(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error creating post: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		
+
 		log.Info().Str("filename", post.Filename).Msg("Created new post")
 
 		// Redirect to edit the new post
@@ -239,7 +241,7 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error saving post: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	log.Info().Str("filename", filename).Bool("draft", isDraft).Msg("Post saved")
 
 	// Redirect back to the post list

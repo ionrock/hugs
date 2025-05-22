@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,21 +10,54 @@ import (
 
 	"github.com/ionrock/hugs/posts"
 	"github.com/ionrock/hugs/templates"
+	"github.com/urfave/cli/v2"
 )
 
 var contentDir string
 
 func main() {
-	// Get the current working directory
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
+	app := &cli.App{
+		Name:  "hugs",
+		Usage: "Hugo blog editor server",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "port",
+				Aliases: []string{"p"},
+				Value:   "8080",
+				Usage:   "Port to run the server on",
+			},
+			&cli.StringFlag{
+				Name:    "content-dir",
+				Aliases: []string{"d"},
+				Usage:   "Path to the content/post directory (defaults to ./content/post)",
+			},
+		},
+		Action: runServer,
 	}
 
-	// Ensure we're in a Hugo blog directory
-	contentDir = filepath.Join(wd, "content", "post")
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func runServer(c *cli.Context) error {
+	// Get the content directory
+	if c.String("content-dir") != "" {
+		contentDir = c.String("content-dir")
+	} else {
+		// Get the current working directory
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get working directory: %w", err)
+		}
+
+		// Use default Hugo blog directory
+		contentDir = filepath.Join(wd, "content", "post")
+	}
+
+	// Ensure the content directory exists
 	if _, err := os.Stat(contentDir); os.IsNotExist(err) {
-		log.Fatal("content/post directory not found. Please run this server from your Hugo blog root directory.")
+		return fmt.Errorf("content directory not found: %s", contentDir)
 	}
 
 	// Set up routes
@@ -33,9 +67,13 @@ func main() {
 	http.HandleFunc("/save", handleSave)
 
 	// Start the server
-	port := ":8080"
+	port := c.String("port")
+	if !strings.HasPrefix(port, ":") {
+		port = ":" + port
+	}
+	
 	log.Printf("Starting server on http://localhost%s", port)
-	log.Fatal(http.ListenAndServe(port, nil))
+	return http.ListenAndServe(port, nil)
 }
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {

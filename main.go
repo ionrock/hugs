@@ -1,14 +1,22 @@
 package main
 
 import (
-	"log"
 	"os"
+	"time"
 
 	"github.com/ionrock/hugs/web"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
+	// Configure zerolog
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: time.RFC3339,
+	})
 	app := &cli.App{
 		Name:  "hugs",
 		Usage: "Hugo blog editor server",
@@ -37,9 +45,11 @@ func runServer(c *cli.Context) error {
 	// Create a new server
 	server, err := web.New(c.String("content-dir"), c.String("port"))
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to create server")
 		return err
 	}
 
 	// Start the server
+	log.Info().Msg("Starting server")
 	return server.Start()
 }

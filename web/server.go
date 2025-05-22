@@ -1,8 +1,6 @@
 package web
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -10,6 +8,7 @@ import (
 
 	"github.com/ionrock/hugs/posts"
 	"github.com/ionrock/hugs/templates"
+	"github.com/rs/zerolog/log"
 )
 
 // Server represents the web server for the Hugo blog editor
@@ -40,7 +39,8 @@ func New(contentDir, port string) (*Server, error) {
 
 	// Ensure the content directory exists
 	if _, err := os.Stat(contentDir); os.IsNotExist(err) {
-		return nil, fmt.Errorf("content directory not found: %s", contentDir)
+		log.Error().Str("dir", contentDir).Msg("Content directory not found")
+		return nil, err
 	}
 
 	// Format port
@@ -62,8 +62,8 @@ func (s *Server) Start() error {
 	http.HandleFunc("/new", s.handleNew)
 	http.HandleFunc("/save", s.handleSave)
 
-	fmt.Println("Using content hugo dir:", s.ContentDir)
-	log.Printf("Starting server on http://localhost%s", s.Port)
+	log.Info().Str("content_dir", s.ContentDir).Msg("Using content directory")
+	log.Info().Str("address", "http://localhost"+s.Port).Msg("Starting server")
 	return http.ListenAndServe(s.Port, nil)
 }
 
@@ -76,6 +76,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	// Get all posts
 	postList, err := posts.ListPosts(s.ContentDir)
 	if err != nil {
+		log.Error().Err(err).Msg("Error reading posts")
 		http.Error(w, "Error reading posts: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -84,6 +85,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	component := templates.Index(postList)
 	err = component.Render(r.Context(), w)
 	if err != nil {
+		log.Error().Err(err).Msg("Error rendering index template")
 		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -105,6 +107,7 @@ func (s *Server) handleEdit(w http.ResponseWriter, r *http.Request) {
 	// Read the post
 	post, err := posts.ReadPost(filepath.Join(s.ContentDir, filename))
 	if err != nil {
+		log.Error().Err(err).Str("filename", filename).Msg("Error reading post")
 		http.Error(w, "Error reading post: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -113,6 +116,7 @@ func (s *Server) handleEdit(w http.ResponseWriter, r *http.Request) {
 	component := templates.Edit(post)
 	err = component.Render(r.Context(), w)
 	if err != nil {
+		log.Error().Err(err).Str("filename", filename).Msg("Error rendering edit template")
 		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -128,9 +132,12 @@ func (s *Server) handleNew(w http.ResponseWriter, r *http.Request) {
 
 		post, err := posts.CreateNewPost(s.ContentDir, title)
 		if err != nil {
+			log.Error().Err(err).Str("title", title).Msg("Error creating new post")
 			http.Error(w, "Error creating post: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+		
+		log.Info().Str("filename", post.Filename).Msg("Created new post")
 
 		// Redirect to edit the new post
 		http.Redirect(w, r, "/edit/"+post.Filename, http.StatusSeeOther)
@@ -212,6 +219,7 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 	// Extract title from the markdown content
 	title, err := posts.NewPostFromMarkdown(content)
 	if err != nil {
+		log.Error().Err(err).Str("filename", filename).Msg("Error extracting title from markdown")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -227,9 +235,12 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 	// Save the post
 	err = posts.SavePost(s.ContentDir, post)
 	if err != nil {
+		log.Error().Err(err).Str("filename", filename).Msg("Error saving post")
 		http.Error(w, "Error saving post: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	
+	log.Info().Str("filename", filename).Bool("draft", isDraft).Msg("Post saved")
 
 	// Redirect back to the post list
 	http.Redirect(w, r, "/", http.StatusSeeOther)

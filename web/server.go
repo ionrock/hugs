@@ -146,6 +146,7 @@ func (s *Server) handleNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Writ the following HTML as a new templ template in `templates/new.templ`. Be sure to use the `@Base()` like in `edit.templ`. AI!
 	// Show the new post form
 	w.Write([]byte(`
 <!DOCTYPE html>

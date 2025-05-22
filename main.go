@@ -45,8 +45,12 @@ func runServer(c *cli.Context) error {
 
 	// Get the content directory
 	if c.String("content-dir") != "" {
-		// Try to find the full path of the `c.String("content-dir")` flag and set it to the `contentDir` variable. AI!
-		contentDir = c.String("content-dir")
+		// Get absolute path for the content directory
+		absPath, err := filepath.Abs(c.String("content-dir"))
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path: %w", err)
+		}
+		contentDir = absPath
 	}
 
 	if contentDir == "" {

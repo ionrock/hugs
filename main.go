@@ -17,6 +17,9 @@ func main() {
 		Out:        os.Stdout,
 		TimeFormat: time.RFC3339,
 	})
+	
+	// Default log level is info
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	app := &cli.App{
 		Name:  "hugs",
 		Usage: "Hugo blog editor server",
@@ -32,6 +35,11 @@ func main() {
 				Aliases: []string{"d"},
 				Usage:   "Path to the content/post directory (defaults to ./content/post)",
 			},
+			&cli.BoolFlag{
+				Name:    "debug",
+				Aliases: []string{"v"},
+				Usage:   "Enable debug logging",
+			},
 		},
 		Action: runServer,
 	}
@@ -42,6 +50,11 @@ func main() {
 }
 
 func runServer(c *cli.Context) error {
+	// Set debug level if requested
+	if c.Bool("debug") {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		log.Debug().Msg("Debug logging enabled")
+	}
 	// Create a new server
 	server, err := web.New(c.String("content-dir"), c.String("port"))
 	if err != nil {

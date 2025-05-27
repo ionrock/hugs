@@ -11,3 +11,15 @@ install_templ:
 
 local: hugs
 	./hugs -d ../ionrock.github.io
+
+server:
+	air \
+	--build.cmd "make hugs" \
+	--build.bin "make local" \
+	--build.delay "100" \
+	--build.include_ext "go" \
+	--build.include_ext "templ" \
+	--build.stop_on_error "false" \
+
+bootstrap:
+	go install github.com/air-verse/air@latest

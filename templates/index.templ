@@ -19,7 +19,7 @@ templ renderPosts(posts []posts.Post) {
 	for _, post := range posts {
 		<li class="post-item">
 			<a href={ templ.URL(fmt.Sprintf("/edit/%s", post.Filename)) }>
-				<h2 class="post-title">{ post.Title }</h2>
+				<h3 class="post-title">{ post.Title }</h3>
 				<div class="post-meta">
 					{ post.Date.Format("2006-01-02") }
 					if post.IsDraft {

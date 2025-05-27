@@ -25,11 +25,11 @@ templ Base() {
             --primary-foreground: #ffffff;
             --ring: #171717;
         }
-        
+
         * {
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             max-width: 800px;
@@ -39,7 +39,7 @@ templ Base() {
             color: var(--foreground);
             background: var(--background);
         }
-        
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -48,7 +48,7 @@ templ Base() {
             padding-bottom: 16px;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .new-post {
             background: var(--primary);
             color: var(--primary-foreground);
@@ -59,41 +59,39 @@ templ Base() {
             font-weight: 500;
             transition: opacity 0.2s;
         }
-        
+
         .new-post:hover {
             opacity: 0.9;
         }
-        
+
         .post-list {
             list-style: none;
             padding: 0;
         }
-        
+
         .post-item {
             padding: 16px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
             margin-bottom: 12px;
             transition: all 0.2s ease;
         }
-        
+
         .post-item:hover {
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             border-color: var(--ring);
         }
-        
+
         .post-title {
             margin: 0;
             font-size: 1.1em;
             font-weight: 500;
         }
-        
+
         .post-meta {
             color: var(--muted-foreground);
             font-size: 0.85em;
             margin-top: 6px;
         }
-        
+
         .draft-badge {
             background: var(--muted);
             color: var(--foreground);
@@ -103,18 +101,18 @@ templ Base() {
             font-weight: 500;
             margin-left: 8px;
         }
-        
+
         .form-group {
             margin-bottom: 24px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 8px;
             font-size: 14px;
             font-weight: 500;
         }
-        
+
         input[type="text"] {
             width: 100%;
             padding: 10px 12px;
@@ -124,12 +122,12 @@ templ Base() {
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        
+
         input[type="text"]:focus {
             border-color: var(--ring);
             box-shadow: 0 0 0 1px var(--ring);
         }
-        
+
         textarea {
             width: 100%;
             height: 600px;
@@ -141,19 +139,19 @@ templ Base() {
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        
+
         textarea:focus {
             border-color: var(--ring);
             box-shadow: 0 0 0 1px var(--ring);
         }
-        
+
         .checkbox-group {
             margin: 24px 0;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
+
         button {
             background: var(--primary);
             color: var(--primary-foreground);
@@ -165,11 +163,11 @@ templ Base() {
             font-weight: 500;
             transition: opacity 0.2s;
         }
-        
+
         button:hover {
             opacity: 0.9;
         }
-        
+
         .back-link {
             display: inline-block;
             margin-bottom: 24px;
@@ -178,7 +176,7 @@ templ Base() {
             font-size: 14px;
             font-weight: 500;
         }
-        
+
         .back-link:hover {
             text-decoration: underline;
         }

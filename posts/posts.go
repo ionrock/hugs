@@ -25,7 +25,7 @@ func ListPosts(contentDir string) ([]Post, error) {
 	var posts []Post
 
 	log.Debug().Str("dir", contentDir).Msg("Listing posts")
-	
+
 	files, err := os.ReadDir(contentDir)
 	if err != nil {
 		log.Error().Err(err).Str("dir", contentDir).Msg("Failed to read posts directory")
@@ -50,7 +50,7 @@ func ListPosts(contentDir string) ([]Post, error) {
 // ReadPost reads a post file and parses its front matter
 func ReadPost(path string) (Post, error) {
 	log.Debug().Str("path", path).Msg("Reading post")
-	
+
 	content, err := os.ReadFile(path)
 	if err != nil {
 		log.Error().Err(err).Str("path", path).Msg("Failed to read post file")
@@ -84,6 +84,7 @@ func ReadPost(path string) (Post, error) {
 
 			switch key {
 			case "title":
+				// Format the title to remove any `"` characters that start or end the title. AI!
 				post.Title = value
 			case "date":
 				dateformats := []string{
@@ -144,7 +145,7 @@ func ReadPost(path string) (Post, error) {
 // CreateNewPost creates a new post with the given title
 func CreateNewPost(contentDir, title string) (Post, error) {
 	log.Info().Str("title", title).Str("dir", contentDir).Msg("Creating new post")
-	
+
 	now := time.Now()
 	post := Post{
 		Title:   title,
@@ -177,7 +178,7 @@ func CreateNewPost(contentDir, title string) (Post, error) {
 // SavePost saves a post to disk
 func SavePost(contentDir string, post Post) error {
 	log.Debug().Str("filename", post.Filename).Str("dir", contentDir).Bool("draft", post.IsDraft).Msg("Saving post")
-	
+
 	path := filepath.Join(contentDir, post.Filename)
 	file, err := os.Create(path)
 	if err != nil {
@@ -203,7 +204,7 @@ func (p Post) Slug() string {
 
 func NewPostFromMarkdown(content string) (string, error) {
 	log.Debug().Msg("Extracting title from markdown content")
-	
+
 	scanner := bufio.NewScanner(strings.NewReader(content))
 	inFrontMatter := false
 	var title string

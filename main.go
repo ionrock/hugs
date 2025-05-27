@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	"github.com/ionrock/hugs/web"
@@ -57,15 +58,22 @@ func main() {
 }
 
 // startHugoServer starts the local Hugo server in development mode
-func startHugoServer() {
+func startHugoServer(contentDir string) {
 	log.Info().Msg("Starting Hugo server")
 
 	// Execute the hugo server command
 	cmd := exec.Command("hugo", "server", "-D")
 
-	// Change this to be the same as the `content-dir` flag. This will need to be passed in. AI!
-	// Set the command to run in the current directory
-	cmd.Dir = "."
+	// Set the command to run in the directory containing the content
+	if contentDir != "" {
+		// Extract the base directory (removing content/post from the path)
+		baseDir := filepath.Dir(filepath.Dir(contentDir))
+		log.Debug().Str("hugo_dir", baseDir).Msg("Running Hugo server in directory")
+		cmd.Dir = baseDir
+	} else {
+		// Default to current directory if no content dir specified
+		cmd.Dir = "."
+	}
 
 	// Redirect stdout and stderr to our logger
 	stdout, err := cmd.StdoutPipe()
@@ -123,7 +131,7 @@ func runServer(c *cli.Context) error {
 
 	// Start Hugo server if requested
 	if c.Bool("hugo-server") {
-		go startHugoServer()
+		go startHugoServer(c.String("content-dir"))
 	}
 
 	// Create a new server

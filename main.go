@@ -67,13 +67,14 @@ func startHugoServer(contentDir string) {
 	// Set the command to run in the directory containing the content
 	if contentDir != "" {
 		// Extract the base directory (removing content/post from the path)
-		baseDir := filepath.Dir(filepath.Dir(contentDir))
-		log.Debug().Str("hugo_dir", baseDir).Msg("Running Hugo server in directory")
+		baseDir, _ := filepath.Abs(contentDir)
 		cmd.Dir = baseDir
 	} else {
 		// Default to current directory if no content dir specified
 		cmd.Dir = "."
 	}
+
+	log.Debug().Str("hugo_dir", cmd.Dir).Msg("Running Hugo server in directory")
 
 	// Redirect stdout and stderr to our logger
 	stdout, err := cmd.StdoutPipe()

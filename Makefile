@@ -10,7 +10,7 @@ install_templ:
 	go install github.com/a-h/templ/cmd/templ@latest
 
 local: hugs
-	./hugs -d ../ionrock.github.io
+	./hugs -v -d ../ionrock.github.io -s
 
 server:
 	air \

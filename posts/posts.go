@@ -20,6 +20,7 @@ type Post struct {
 	Filename string
 }
 
+// Change this function to order the posts by the date. AI!
 // ListPosts returns all posts in the content/post directory
 func ListPosts(contentDir string) ([]Post, error) {
 	var posts []Post

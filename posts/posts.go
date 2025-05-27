@@ -84,8 +84,8 @@ func ReadPost(path string) (Post, error) {
 
 			switch key {
 			case "title":
-				// Format the title to remove any `"` characters that start or end the title. AI!
-				post.Title = value
+				// Remove quotes at the beginning and end of the title
+				post.Title = strings.Trim(value, "\"")
 			case "date":
 				dateformats := []string{
 					"2006-01-02",

@@ -58,6 +58,7 @@ func New(contentDir, port string) (*Server, error) {
 
 // Start starts the web server
 func (s *Server) Start() error {
+	// Update this to use an http.NewServeMux to allow specifying the handler as `GET /edit` where the http method is included in the pattern. AI!
 	// Set up routes
 	http.HandleFunc("/", s.handleIndex)
 	http.HandleFunc("/edit/", s.handleEdit)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -20,8 +21,7 @@ type Post struct {
 	Filename string
 }
 
-// Change this function to order the posts by the date. AI!
-// ListPosts returns all posts in the content/post directory
+// ListPosts returns all posts in the content/post directory, ordered by date (newest first)
 func ListPosts(contentDir string) ([]Post, error) {
 	var posts []Post
 
@@ -44,7 +44,12 @@ func ListPosts(contentDir string) ([]Post, error) {
 		}
 	}
 
-	log.Debug().Int("count", len(posts)).Msg("Posts found")
+	// Sort posts by date, newest first
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].Date.After(posts[j].Date)
+	})
+
+	log.Debug().Int("count", len(posts)).Msg("Posts found and sorted by date")
 	return posts, nil
 }
 

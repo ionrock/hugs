@@ -58,16 +58,19 @@ func New(contentDir, port string) (*Server, error) {
 
 // Start starts the web server
 func (s *Server) Start() error {
-	// Update this to use an http.NewServeMux to allow specifying the handler as `GET /edit` where the http method is included in the pattern. AI!
-	// Set up routes
-	http.HandleFunc("/", s.handleIndex)
-	http.HandleFunc("/edit/", s.handleEdit)
-	http.HandleFunc("/new", s.handleNew)
-	http.HandleFunc("/save", s.handleSave)
+	// Set up routes with method-specific patterns
+	mux := http.NewServeMux()
+	
+	// Register routes with HTTP method patterns
+	mux.HandleFunc("GET /", s.handleIndex)
+	mux.HandleFunc("GET /edit/", s.handleEdit)
+	mux.HandleFunc("GET /new", s.handleNew)
+	mux.HandleFunc("POST /new", s.handleNew)
+	mux.HandleFunc("POST /save", s.handleSave)
 
 	log.Info().Str("content_dir", s.ContentDir).Msg("Using content directory")
 	log.Info().Str("address", "http://localhost"+s.Port).Msg("Starting server")
-	return http.ListenAndServe(s.Port, nil)
+	return http.ListenAndServe(s.Port, mux)
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -95,10 +98,6 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleEdit(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	// Get the filename from the URL
 	filename := strings.TrimPrefix(r.URL.Path, "/edit/")
@@ -126,7 +125,7 @@ func (s *Server) handleEdit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleNew(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
+	if r.Method == http.MethodPost {
 		title := r.FormValue("title")
 		if title == "" {
 			http.Error(w, "Title is required", http.StatusBadRequest)
@@ -158,10 +157,6 @@ func (s *Server) handleNew(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	// Get form values
 	filename := r.FormValue("filename")

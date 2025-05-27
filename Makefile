@@ -17,8 +17,7 @@ server:
 	--build.cmd "make hugs" \
 	--build.bin "make local" \
 	--build.delay "100" \
-	--build.include_ext "go" \
-	--build.include_ext "templ" \
+	--build.include_ext "go,templ" \
 	--build.stop_on_error "false" \
 
 bootstrap:

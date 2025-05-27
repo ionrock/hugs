@@ -60,7 +60,7 @@ func New(contentDir, port string) (*Server, error) {
 func (s *Server) Start() error {
 	// Set up routes with method-specific patterns
 	mux := http.NewServeMux()
-	
+
 	// Register routes with HTTP method patterns
 	mux.HandleFunc("GET /", s.handleIndex)
 	mux.HandleFunc("GET /edit/", s.handleEdit)

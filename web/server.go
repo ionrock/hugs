@@ -191,6 +191,9 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().Str("filename", filename).Msg("Post saved")
+
+	// When we save, we should also commit the changes to the repo. Let's create a new function to commit and use it here. The commit function can use the title of the post to describe the change. For example, "updated post 'My Title'". AI!
+
 	// Redirect back to the post list
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

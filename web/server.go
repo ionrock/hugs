@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -16,6 +17,34 @@ import (
 type Server struct {
 	ContentDir string
 	Port       string
+}
+
+// commitChanges commits the saved post to the git repository
+func (s *Server) commitChanges(filename, title string) error {
+	log.Debug().Str("filename", filename).Str("title", title).Msg("Committing changes to git")
+
+	// Get the repository root directory (parent of content directory)
+	repoDir := filepath.Dir(filepath.Dir(s.ContentDir))
+	
+	// Stage the file
+	gitAdd := exec.Command("git", "add", filepath.Join("content", "post", filename))
+	gitAdd.Dir = repoDir
+	if err := gitAdd.Run(); err != nil {
+		return fmt.Errorf("git add failed: %w", err)
+	}
+
+	// Create commit message
+	commitMsg := fmt.Sprintf("Updated post '%s'", title)
+	
+	// Commit the changes
+	gitCommit := exec.Command("git", "commit", "-m", commitMsg)
+	gitCommit.Dir = repoDir
+	if err := gitCommit.Run(); err != nil {
+		return fmt.Errorf("git commit failed: %w", err)
+	}
+
+	log.Info().Str("filename", filename).Str("title", title).Msg("Changes committed to git")
+	return nil
 }
 
 // New creates a new server instance
@@ -192,7 +221,17 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Str("filename", filename).Msg("Post saved")
 
-	// When we save, we should also commit the changes to the repo. Let's create a new function to commit and use it here. The commit function can use the title of the post to describe the change. For example, "updated post 'My Title'". AI!
+	// Extract post title from content for commit message
+	title, err := posts.NewPostFromMarkdown(content)
+	if err != nil {
+		log.Warn().Err(err).Msg("Could not extract title for commit message")
+		title = filename // Fallback to using filename if title extraction fails
+	}
+
+	// Commit the changes to git
+	if err := s.commitChanges(filename, title); err != nil {
+		log.Warn().Err(err).Msg("Failed to commit changes to git")
+	}
 
 	// Redirect back to the post list
 	http.Redirect(w, r, "/", http.StatusSeeOther)

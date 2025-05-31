@@ -3,13 +3,17 @@ package templates
 import "github.com/ionrock/hugs/posts"
 import "fmt"
 
-templ Index(posts []posts.Post) {
+templ Index(posts []posts.Post, hasUnpushedChanges bool) {
 	@Base() {
 		<div class="header">
 			<h1>Blog Posts</h1>
 			<div class="actions">
 				<a href="/new" class="button">New Post</a>
-				<a href="/push" class="button">Push</a>
+				if hasUnpushedChanges {
+					<a href="/push" class="button">Push</a>
+				} else {
+					<span class="button disabled" title="No changes to push">Push</span>
+				}
 			</div>
 		</div>
 		<ul class="post-list">

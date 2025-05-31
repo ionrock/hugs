@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"os"
@@ -103,6 +104,30 @@ func (s *Server) Start() error {
 	return http.ListenAndServe(s.Port, mux)
 }
 
+// hasUnpushedChanges checks if there are commits that haven't been pushed to the remote
+func (s *Server) hasUnpushedChanges() bool {
+	// Get the repository root directory (parent of content directory)
+	repoDir := filepath.Dir(filepath.Dir(s.ContentDir))
+	
+	// Check if there are unpushed commits
+	// git log @{u}..HEAD will list commits that are in HEAD but not in the upstream branch
+	cmd := exec.Command("git", "log", "@{u}..HEAD", "--oneline")
+	cmd.Dir = repoDir
+	
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	
+	// If there's an error, it could be because there's no upstream branch
+	// In that case, we'll assume there are changes to push
+	if err := cmd.Run(); err != nil {
+		log.Debug().Err(err).Msg("Error checking for unpushed changes, assuming changes exist")
+		return true
+	}
+	
+	// If the output is not empty, there are unpushed commits
+	return out.String() != ""
+}
+
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -116,9 +141,13 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error reading posts: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	
+	// Check if there are unpushed changes
+	hasChanges := s.hasUnpushedChanges()
+	log.Debug().Bool("has_unpushed_changes", hasChanges).Msg("Checked for unpushed changes")
 
 	// Render the template
-	component := templates.Index(postList)
+	component := templates.Index(postList, hasChanges)
 	err = component.Render(r.Context(), w)
 	if err != nil {
 		log.Error().Err(err).Msg("Error rendering index template")

@@ -63,6 +63,13 @@ templ Base() {
         .button:hover {
             opacity: 0.9;
         }
+        
+        .button.disabled {
+            background: var(--muted);
+            color: var(--muted-foreground);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
 
         .post-list {
             list-style: none;

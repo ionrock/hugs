@@ -96,6 +96,7 @@ func (s *Server) Start() error {
 	mux.HandleFunc("GET /new", s.handleNew)
 	mux.HandleFunc("POST /new", s.handleNew)
 	mux.HandleFunc("POST /save", s.handleSave)
+	mux.HandleFunc("GET /push", s.handlePush)
 
 	log.Info().Str("content_dir", s.ContentDir).Msg("Using content directory")
 	log.Info().Str("address", "http://localhost"+s.Port).Msg("Starting server")
@@ -183,6 +184,28 @@ func (s *Server) handleNew(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (s *Server) handlePush(w http.ResponseWriter, r *http.Request) {
+	log.Info().Msg("Pushing changes to remote repository")
+
+	// Get the repository root directory (parent of content directory)
+	repoDir := filepath.Dir(filepath.Dir(s.ContentDir))
+	
+	// Execute git push
+	gitPush := exec.Command("git", "push")
+	gitPush.Dir = repoDir
+	
+	if err := gitPush.Run(); err != nil {
+		log.Error().Err(err).Msg("Failed to push changes to remote repository")
+		http.Error(w, "Error pushing changes: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	log.Info().Msg("Successfully pushed changes to remote repository")
+	
+	// Redirect back to the post list
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {

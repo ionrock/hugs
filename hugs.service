@@ -1,0 +1,17 @@
+[Unit]
+Description=Hugs - Hugo Blog Editor
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/hugs --content-dir=/path/to/your/blog
+Restart=on-failure
+RestartSec=5
+WorkingDirectory=/path/to/your/blog
+
+# Uncomment and modify these if you want to run with specific environment variables
+#Environment=PORT=8080
+#Environment=DEBUG=true
+
+[Install]
+WantedBy=default.target
